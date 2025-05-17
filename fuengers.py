@@ -54,8 +54,6 @@ if uploaded_files:
 
     if eintraege:
         df_gesamt = pd.DataFrame(eintraege)
-        st.success(f"{len(df_gesamt)} gültige Füngers-Zulagen erkannt.")
-        st.dataframe(df_gesamt)
 
         output = io.BytesIO()
         with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -139,11 +137,11 @@ if uploaded_files:
                     max_len = max((len(str(cell.value)) if cell.value else 0) for cell in col_cells)
                     col_letter = get_column_letter(col_cells[0].column)
                     if col_letter == "F":
-                        sheet.column_dimensions[col_letter].width = 20  # F manuell breiter
+                        sheet.column_dimensions[col_letter].width = 20
                     else:
                         sheet.column_dimensions[col_letter].width = int(max_len * 1.2) + 2
 
-        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v14.xlsx")
+        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v15.xlsx")
 
     else:
         st.warning("Keine gültigen Füngers-Zulagen gefunden.")
