@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
-from openpyxl.styles import Font, Alignment, PatternFill, Border, Side, numbers
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 
 st.title("Zulage Füngers")
@@ -68,6 +68,7 @@ if uploaded_files:
                     for _, r in gruppe.iterrows():
                         zeilen.append([r["DatumKW"], r["Kommentar"], r["Verdienst"]])
                     zeilen.append(["Gesamt", "", gruppe["Verdienst"].sum()])
+                    zeilen.append(["", "", ""])  # Leerzeile für bessere Lesbarkeit
 
                 df_sheet = pd.DataFrame(zeilen, columns=["Spalte A", "Spalte B", "Spalte C"])
                 sheet_name = monat_key.split("_")[1][:31]
@@ -79,7 +80,7 @@ if uploaded_files:
 
                 hellblau = PatternFill("solid", fgColor="ddebf7")
                 header_fill = PatternFill("solid", fgColor="95b3d7")
-                total_fill = PatternFill("solid", fgColor="c7b7b3")
+                total_fill = PatternFill("solid", fgColor="d9d9d9")  # dezentes Grau für "Gesamt"
 
                 for row in sheet.iter_rows():
                     row_idx = row[0].row
@@ -96,13 +97,13 @@ if uploaded_files:
 
                         if is_name_row:
                             cell.font = Font(bold=True, size=12)
-                            cell.fill = PatternFill("solid", fgColor="ddebf7")
+                            cell.fill = hellblau
                         elif row[0].value == "Datum":
                             cell.font = Font(bold=True)
-                            cell.fill = PatternFill("solid", fgColor="95b3d7")
+                            cell.fill = header_fill
                         elif str(row[0].value).strip().lower() == "gesamt":
                             cell.font = Font(bold=True)
-                            cell.fill = PatternFill("solid", fgColor="c7b7b3")
+                            cell.fill = total_fill
 
                     # Format-Spalte C (Verdienst) mit Euro
                     verdienst_cell = row[2]
@@ -118,7 +119,7 @@ if uploaded_files:
                     col_letter = get_column_letter(col_cells[0].column)
                     sheet.column_dimensions[col_letter].width = int(max_len * 1.2) + 2
 
-        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v9.xlsx")
+        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v10.xlsx")
 
     else:
         st.warning("Keine gültigen Füngers-Zulagen gefunden.")
