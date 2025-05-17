@@ -70,10 +70,8 @@ if uploaded_files:
                     zeilen.append(["Gesamt", "", gruppe["Verdienst"].sum()])
                     zeilen.append(["", "", ""])  # Leerzeile für bessere Lesbarkeit
 
-                # Monatsgesamtsumme am Ende
+                # Monatsgesamtsumme nur intern merken – nicht in Tabelle einfügen
                 monatsgesamt = df_monat["Verdienst"].sum()
-                zeilen.append(["Monatsgesamt", "", monatsgesamt])
-                zeilen.append(["", "", ""])
 
                 df_sheet = pd.DataFrame(zeilen, columns=["Spalte A", "Spalte B", "Spalte C"])
                 sheet_name = monat_key.split("_")[1][:31]
@@ -86,10 +84,12 @@ if uploaded_files:
                 hellblau = PatternFill("solid", fgColor="ddebf7")
                 header_fill = PatternFill("solid", fgColor="95b3d7")
                 total_fill = PatternFill("solid", fgColor="d9d9d9")
-                monatsgesamt_fill = PatternFill("solid", fgColor="bfbfbf")
+
+                monatsgesamt_row = None
 
                 for row in sheet.iter_rows():
                     row_idx = row[0].row
+                    val = str(row[0].value).strip().lower() if row[0].value else ""
                     is_name_row = (
                         str(row[0].value).strip() != ""
                         and (row[1].value is None or row[1].value == "")
@@ -107,12 +107,9 @@ if uploaded_files:
                         elif row[0].value == "Datum":
                             cell.font = Font(bold=True)
                             cell.fill = header_fill
-                        elif str(row[0].value).strip().lower() == "gesamt":
+                        elif val == "gesamt":
                             cell.font = Font(bold=True)
                             cell.fill = total_fill
-                        elif str(row[0].value).strip().lower() == "monatsgesamt":
-                            cell.font = Font(bold=True, size=12)
-                            cell.fill = monatsgesamt_fill
 
                     # Format-Spalte C (Verdienst) mit Euro
                     verdienst_cell = row[2]
@@ -122,13 +119,30 @@ if uploaded_files:
                     except:
                         pass
 
-                # Autobreite 120 %
+                    # Position merken, wo "Monatsgesamt" später hin soll
+                    if val == "" and monatsgesamt_row is None:
+                        monatsgesamt_row = row_idx + 1  # erste freie Zeile nach Daten
+
+                # Schreibe rechts daneben die Monatsgesamtsumme
+                if monatsgesamt_row:
+                    cell_text = sheet.cell(row=monatsgesamt_row, column=5)  # Spalte E
+                    cell_text.value = "Monatsgesamt:"
+                    cell_text.font = Font(bold=True, size=12)
+                    cell_text.alignment = Alignment(horizontal="right", vertical="center")
+
+                    cell_sum = sheet.cell(row=monatsgesamt_row, column=6)  # Spalte F
+                    cell_sum.value = monatsgesamt
+                    cell_sum.font = Font(bold=True, size=12)
+                    cell_sum.number_format = '#,##0.00 €'
+                    cell_sum.alignment = Alignment(horizontal="left", vertical="center")
+
+                # Autobreite
                 for col_cells in sheet.columns:
                     max_len = max((len(str(cell.value)) if cell.value else 0) for cell in col_cells)
                     col_letter = get_column_letter(col_cells[0].column)
                     sheet.column_dimensions[col_letter].width = int(max_len * 1.2) + 2
 
-        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v11.xlsx")
+        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v12.xlsx")
 
     else:
         st.warning("Keine gültigen Füngers-Zulagen gefunden.")
