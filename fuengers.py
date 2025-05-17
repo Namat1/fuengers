@@ -66,7 +66,7 @@ if uploaded_files:
                     for _, r in gruppe.iterrows():
                         zeilen.append([r["DatumKW"], r["Kommentar"], r["Verdienst"]])
                     zeilen.append(["Gesamt", "", gruppe["Verdienst"].sum()])
-                    zeilen.append(["", "", ""])  # Leerzeile
+                    zeilen.append(["", "", ""])
 
                 monatsgesamt = df_monat["Verdienst"].sum()
 
@@ -75,6 +75,8 @@ if uploaded_files:
                 df_sheet.to_excel(writer, index=False, sheet_name=sheet_name)
 
                 sheet = writer.sheets[sheet_name]
+                sheet.row_dimensions[1].hidden = True  # ← Zeile 1 ausblenden
+
                 thin = Border(left=Side(style='thin'), right=Side(style='thin'),
                               top=Side(style='thin'), bottom=Side(style='thin'))
 
@@ -108,7 +110,7 @@ if uploaded_files:
                             cell.font = Font(bold=True)
                             cell.fill = total_fill
 
-                    # Spalte C formatieren
+                    # Format-Spalte C (Verdienst) mit Euro
                     verdienst_cell = row[2]
                     try:
                         if isinstance(verdienst_cell.value, (float, int)):
@@ -141,7 +143,7 @@ if uploaded_files:
                     else:
                         sheet.column_dimensions[col_letter].width = int(max_len * 1.2) + 2
 
-        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="Füngers_Monatsauswertung.xlsx")
+        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v16.xlsx")
 
     else:
         st.warning("Keine gültigen Füngers-Zulagen gefunden.")
