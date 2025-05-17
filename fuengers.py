@@ -68,9 +68,8 @@ if uploaded_files:
                     for _, r in gruppe.iterrows():
                         zeilen.append([r["DatumKW"], r["Kommentar"], r["Verdienst"]])
                     zeilen.append(["Gesamt", "", gruppe["Verdienst"].sum()])
-                    zeilen.append(["", "", ""])  # Leerzeile für bessere Lesbarkeit
+                    zeilen.append(["", "", ""])  # Leerzeile
 
-                # Monatsgesamtsumme nur intern merken – nicht in Tabelle einfügen
                 monatsgesamt = df_monat["Verdienst"].sum()
 
                 df_sheet = pd.DataFrame(zeilen, columns=["Spalte A", "Spalte B", "Spalte C"])
@@ -111,7 +110,7 @@ if uploaded_files:
                             cell.font = Font(bold=True)
                             cell.fill = total_fill
 
-                    # Format-Spalte C (Verdienst) mit Euro
+                    # Spalte C formatieren
                     verdienst_cell = row[2]
                     try:
                         if isinstance(verdienst_cell.value, (float, int)):
@@ -119,11 +118,10 @@ if uploaded_files:
                     except:
                         pass
 
-                    # Position merken, wo "Monatsgesamt" später hin soll
                     if val == "" and monatsgesamt_row is None:
-                        monatsgesamt_row = row_idx + 1  # erste freie Zeile nach Daten
+                        monatsgesamt_row = row_idx + 1
 
-                # Schreibe rechts daneben die Monatsgesamtsumme
+                # Schreibe Monatsgesamt in Spalte E/F
                 if monatsgesamt_row:
                     cell_text = sheet.cell(row=monatsgesamt_row, column=5)  # Spalte E
                     cell_text.value = "Monatsgesamt:"
@@ -136,13 +134,13 @@ if uploaded_files:
                     cell_sum.number_format = '#,##0.00 €'
                     cell_sum.alignment = Alignment(horizontal="left", vertical="center")
 
-                # Autobreite
+                # Autobreite auf alle Spalten (A–F)
                 for col_cells in sheet.columns:
                     max_len = max((len(str(cell.value)) if cell.value else 0) for cell in col_cells)
                     col_letter = get_column_letter(col_cells[0].column)
                     sheet.column_dimensions[col_letter].width = int(max_len * 1.2) + 2
 
-        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v12.xlsx")
+        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v13.xlsx")
 
     else:
         st.warning("Keine gültigen Füngers-Zulagen gefunden.")
