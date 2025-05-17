@@ -80,7 +80,7 @@ if uploaded_files:
                 thin = Border(left=Side(style='thin'), right=Side(style='thin'),
                               top=Side(style='thin'), bottom=Side(style='thin'))
 
-                hellblau = PatternFill("solid", fgColor="ddebf7")
+                orange_fill = PatternFill("solid", fgColor="ffc000")
                 header_fill = PatternFill("solid", fgColor="95b3d7")
                 total_fill = PatternFill("solid", fgColor="d9d9d9")
 
@@ -102,7 +102,7 @@ if uploaded_files:
 
                         if is_name_row:
                             cell.font = Font(bold=True, size=12)
-                            cell.fill = hellblau
+                            cell.fill = orange_fill
                         elif row[0].value == "Datum":
                             cell.font = Font(bold=True)
                             cell.fill = header_fill
@@ -121,26 +121,29 @@ if uploaded_files:
                     if val == "" and monatsgesamt_row is None:
                         monatsgesamt_row = row_idx + 1
 
-                # Schreibe Monatsgesamt in Spalte E/F
+                # Monatsgesamt in Spalte E/F schreiben
                 if monatsgesamt_row:
-                    cell_text = sheet.cell(row=monatsgesamt_row, column=5)  # Spalte E
+                    cell_text = sheet.cell(row=monatsgesamt_row, column=5)  # E
                     cell_text.value = "Monatsgesamt:"
                     cell_text.font = Font(bold=True, size=12)
                     cell_text.alignment = Alignment(horizontal="right", vertical="center")
 
-                    cell_sum = sheet.cell(row=monatsgesamt_row, column=6)  # Spalte F
+                    cell_sum = sheet.cell(row=monatsgesamt_row, column=6)  # F
                     cell_sum.value = monatsgesamt
                     cell_sum.font = Font(bold=True, size=12)
                     cell_sum.number_format = '#,##0.00 €'
                     cell_sum.alignment = Alignment(horizontal="left", vertical="center")
 
-                # Autobreite auf alle Spalten (A–F)
+                # Autobreite auf alle Spalten, Spalte F manuell breiter
                 for col_cells in sheet.columns:
                     max_len = max((len(str(cell.value)) if cell.value else 0) for cell in col_cells)
                     col_letter = get_column_letter(col_cells[0].column)
-                    sheet.column_dimensions[col_letter].width = int(max_len * 1.2) + 2
+                    if col_letter == "F":
+                        sheet.column_dimensions[col_letter].width = 20  # F manuell breiter
+                    else:
+                        sheet.column_dimensions[col_letter].width = int(max_len * 1.2) + 2
 
-        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v13.xlsx")
+        st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="füngers_monatsauswertung_final_v14.xlsx")
 
     else:
         st.warning("Keine gültigen Füngers-Zulagen gefunden.")
