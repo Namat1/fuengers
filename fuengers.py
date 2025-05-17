@@ -96,13 +96,13 @@ if uploaded_files:
 
                         if is_name_row:
                             cell.font = Font(bold=True, size=12)
-                            cell.fill = hellblau
+                            cell.fill = PatternFill("solid", fgColor="ddebf7")
                         elif row[0].value == "Datum":
                             cell.font = Font(bold=True)
-                            cell.fill = header_fill
+                            cell.fill = PatternFill("solid", fgColor="95b3d7")
                         elif str(row[0].value).strip().lower() == "gesamt":
                             cell.font = Font(bold=True)
-                            cell.fill = total_fill
+                            cell.fill = PatternFill("solid", fgColor="c7b7b3")
 
                     # Format-Spalte C (Verdienst) mit Euro
                     verdienst_cell = row[2]
@@ -112,7 +112,7 @@ if uploaded_files:
                     except:
                         pass
 
-                # Autobreite 120 %
+                # Autobreite 120 %
                 for col_cells in sheet.columns:
                     max_len = max((len(str(cell.value)) if cell.value else 0) for cell in col_cells)
                     col_letter = get_column_letter(col_cells[0].column)
