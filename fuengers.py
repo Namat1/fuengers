@@ -4,7 +4,7 @@ import io
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side, numbers
 from openpyxl.utils import get_column_letter
 
-st.title("Füngers-Zulagen Auswertung – mit Euro-Zeichen")
+st.title("Füngers-Zulagen Auswertung")
 
 uploaded_files = st.file_uploader("Excel-Dateien hochladen", type=["xlsx"], accept_multiple_files=True)
 
