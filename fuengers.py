@@ -75,16 +75,31 @@ if uploaded_files:
                 df_sheet.to_excel(writer, index=False, sheet_name=sheet_name)
 
                 sheet = writer.sheets[sheet_name]
-                sheet.row_dimensions[1].hidden = True  # ← Zeile 1 ausblenden
+                sheet.row_dimensions[1].hidden = True
 
-                thin = Border(left=Side(style='thin'), right=Side(style='thin'),
-                              top=Side(style='thin'), bottom=Side(style='thin'))
+                # Moderne Farbpalette
+                thin = Border(
+                    left=Side(style='thin', color='CCCCCC'),
+                    right=Side(style='thin', color='CCCCCC'),
+                    top=Side(style='thin', color='CCCCCC'),
+                    bottom=Side(style='thin', color='CCCCCC')
+                )
+                
+                medium_border = Border(
+                    left=Side(style='medium', color='1F4E78'),
+                    right=Side(style='medium', color='1F4E78'),
+                    top=Side(style='medium', color='1F4E78'),
+                    bottom=Side(style='medium', color='1F4E78')
+                )
 
-                orange_fill = PatternFill("solid", fgColor="ffc000")
-                header_fill = PatternFill("solid", fgColor="95b3d7")
-                total_fill = PatternFill("solid", fgColor="d9d9d9")
+                name_fill = PatternFill("solid", fgColor="4472C4")  # Mittelblau
+                header_fill = PatternFill("solid", fgColor="D9E2F3")  # Hellblau
+                total_fill = PatternFill("solid", fgColor="70AD47")  # Grün
+                data_fill_white = PatternFill("solid", fgColor="FFFFFF")  # Weiß
+                data_fill_light = PatternFill("solid", fgColor="F8F9FA")  # Hellgrau
 
                 monatsgesamt_row = None
+                alternate_row = False
 
                 for row in sheet.iter_rows():
                     row_idx = row[0].row
@@ -95,53 +110,115 @@ if uploaded_files:
                         and (row[2].value is None or row[2].value == "")
                     )
 
-                    for cell in row:
-                        cell.font = Font(name="Calibri", size=11)
-                        cell.alignment = Alignment(horizontal="left", vertical="center")
-                        cell.border = thin
+                    # Namenszeile (z.B. "Max Mustermann")
+                    if is_name_row:
+                        alternate_row = False
+                        for cell in row:
+                            cell.font = Font(name="Calibri", bold=True, size=13, color="FFFFFF")
+                            cell.alignment = Alignment(horizontal="center", vertical="center")
+                            cell.fill = name_fill
+                            cell.border = medium_border
+                        sheet.row_dimensions[row_idx].height = 22
 
-                        if is_name_row:
-                            cell.font = Font(bold=True, size=12)
-                            cell.fill = orange_fill
-                        elif row[0].value == "Datum":
-                            cell.font = Font(bold=True)
+                    # Header-Zeile (Datum, Kommentar, Verdienst)
+                    elif row[0].value == "Datum":
+                        alternate_row = False
+                        for cell in row:
+                            cell.font = Font(name="Calibri", bold=True, size=10, color="1F4E78")
+                            cell.alignment = Alignment(horizontal="center", vertical="center")
                             cell.fill = header_fill
-                        elif val == "gesamt":
-                            cell.font = Font(bold=True)
-                            cell.fill = total_fill
+                            cell.border = thin
+                        sheet.row_dimensions[row_idx].height = 20
 
-                    # Format-Spalte C (Verdienst) mit Euro
+                    # Gesamt-Zeile pro Person
+                    elif val == "gesamt":
+                        alternate_row = False
+                        for cell in row:
+                            cell.font = Font(name="Calibri", bold=True, size=11, color="FFFFFF")
+                            cell.alignment = Alignment(horizontal="right", vertical="center")
+                            cell.fill = total_fill
+                            cell.border = medium_border
+                        sheet.row_dimensions[row_idx].height = 20
+
+                    # Leere Trennzeile
+                    elif val == "":
+                        for cell in row:
+                            cell.font = Font(name="Calibri", size=11)
+                            cell.alignment = Alignment(horizontal="left", vertical="center")
+                            cell.border = None
+                        if monatsgesamt_row is None:
+                            monatsgesamt_row = row_idx + 1
+                        alternate_row = False
+
+                    # Datenzeilen (alternierende Farben)
+                    else:
+                        fill_color = data_fill_white if alternate_row else data_fill_light
+                        for cell in row:
+                            cell.font = Font(name="Calibri", size=10, color="2C3E50")
+                            cell.alignment = Alignment(horizontal="left", vertical="center")
+                            cell.fill = fill_color
+                            cell.border = thin
+                        sheet.row_dimensions[row_idx].height = 20
+                        alternate_row = not alternate_row
+
+                    # Format Spalte C (Verdienst) mit Euro
                     verdienst_cell = row[2]
                     try:
                         if isinstance(verdienst_cell.value, (float, int)):
                             verdienst_cell.number_format = '#,##0.00 €'
+                            verdienst_cell.alignment = Alignment(horizontal="right", vertical="center")
+                            # Grüne Schrift für positive Beträge in Datenzeilen
+                            if verdienst_cell.value > 0 and not (is_name_row or val == "gesamt"):
+                                verdienst_cell.font = Font(name="Calibri", size=10, color="70AD47", bold=True)
                     except:
                         pass
-
-                    if val == "" and monatsgesamt_row is None:
-                        monatsgesamt_row = row_idx + 1
 
                 # Monatsgesamt in Spalte E/F schreiben
                 if monatsgesamt_row:
                     cell_text = sheet.cell(row=monatsgesamt_row, column=5)  # E
                     cell_text.value = "Monatsgesamt:"
-                    cell_text.font = Font(bold=True, size=12)
+                    cell_text.font = Font(name="Calibri", bold=True, size=13, color="1F4E78")
                     cell_text.alignment = Alignment(horizontal="right", vertical="center")
+                    cell_text.fill = PatternFill("solid", fgColor="D9E2F3")
+                    cell_text.border = medium_border
 
                     cell_sum = sheet.cell(row=monatsgesamt_row, column=6)  # F
                     cell_sum.value = monatsgesamt
-                    cell_sum.font = Font(bold=True, size=12)
+                    cell_sum.font = Font(name="Calibri", bold=True, size=13, color="FFFFFF")
                     cell_sum.number_format = '#,##0.00 €'
-                    cell_sum.alignment = Alignment(horizontal="left", vertical="center")
+                    cell_sum.alignment = Alignment(horizontal="right", vertical="center")
+                    cell_sum.fill = PatternFill("solid", fgColor="70AD47")
+                    cell_sum.border = medium_border
+                    
+                    sheet.row_dimensions[monatsgesamt_row].height = 24
 
-                # Autobreite auf alle Spalten, Spalte F manuell breiter
-                for col_cells in sheet.columns:
+                # Spaltenbreiten mit Mindestbreiten
+                column_min_widths = {
+                    1: 25,  # Spalte A (Datum/Name)
+                    2: 35,  # Spalte B (Kommentar - braucht mehr Platz)
+                    3: 18,  # Spalte C (Verdienst)
+                    5: 20,  # Spalte E (Monatsgesamt-Label)
+                    6: 20   # Spalte F (Monatsgesamt-Betrag)
+                }
+
+                for col_idx, col_cells in enumerate(sheet.columns, start=1):
                     max_len = max((len(str(cell.value)) if cell.value else 0) for cell in col_cells)
                     col_letter = get_column_letter(col_cells[0].column)
-                    if col_letter == "F":
-                        sheet.column_dimensions[col_letter].width = 20
-                    else:
-                        sheet.column_dimensions[col_letter].width = int(max_len * 1.2) + 2
+                    
+                    # Berechne Breite mit großzügigerem Puffer
+                    calculated_width = int(max_len * 1.2) + 4
+                    
+                    # Verwende Mindestbreite falls definiert
+                    min_width = column_min_widths.get(col_idx, 12)
+                    adjusted_width = max(calculated_width, min_width)
+                    
+                    # Maximalbreite begrenzen
+                    adjusted_width = min(adjusted_width, 70)
+                    
+                    sheet.column_dimensions[col_letter].width = adjusted_width
+
+                # Freeze Panes für bessere Navigation
+                sheet.freeze_panes = "A3"
 
         st.download_button("Excel-Datei herunterladen", output.getvalue(), file_name="Füngers_Monatsauswertung.xlsx")
 
